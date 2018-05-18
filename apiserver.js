@@ -47,7 +47,26 @@ if(dblite != false){
 		
 	});
 }
+
 closeDB(dblite);
+
+app.get('/songs', function(req, res){
+	var db = connectDB();
+	if(db != false){
+		var urlquery = url.parse(req.url, true).query;
+		execQuery(db, urlquery).then(function(data){
+			// console.log(data);
+			if (data.length > 0) {
+				res.end(JSON.stringify(data));
+			} else{
+				res.end('No data found');
+			}
+		}).catch((reason)=> {
+			res.end("error: " + reason);
+		});
+	}
+	
+})
 
 var server = app.listen(8081, function () {
 
@@ -70,3 +89,36 @@ function closeDB(db){
 	db.close();
 }
 
+let execQuery = function(db, urlquery){
+	return new Promise(
+		function(resolve, reject){
+			var filter = '1=1 ';
+
+			if(urlquery.artist){
+				filter += 'AND UPPER(artist) like UPPER("%'+urlquery.artist+'%") ';
+			}
+			if(urlquery.song){
+				filter += 'AND UPPER(title) like UPPER("%'+urlquery.song+'%") ';
+			}
+			if(urlquery.genre){
+				filter += 'AND UPPER(name) like UPPER("%'+urlquery.genre+'%") ';
+			}
+			if(urlquery.name){
+				filter += 'AND UPPER(name) like UPPER("%'+urlquery.name+'%") ';
+			}
+
+			let sql = 'SELECT artist artist, title, name, duration '+
+			            'FROM songs '+
+			            'INNER JOIN genres on genres.id = songs.genre '+
+			            'WHERE ' + filter + 
+			            ' ORDER BY title';
+			
+			var data = [];
+			db.all(sql, [], (err, row) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(row);
+			});
+		});
+}
