@@ -1,6 +1,5 @@
 var express = require('express');
 var app = express();
-var fs = require("fs");
 var url = require("url");
 const sqlite3 = require('sqlite3').verbose();
 
@@ -54,8 +53,7 @@ app.get('/songs', function(req, res){
 	var db = connectDB();
 	if(db != false){
 		var urlquery = url.parse(req.url, true).query;
-		execQuery(db, urlquery).then(function(data){
-			// console.log(data);
+		execSongs(db, urlquery).then(function(data){
 			if (data.length > 0) {
 				res.end(JSON.stringify(data));
 			} else{
@@ -65,13 +63,25 @@ app.get('/songs', function(req, res){
 			res.end("error: " + reason);
 		});
 	}
-	
+})
+
+app.get('/genres', function(req, res){
+	var db = connectDB();
+	if(db != false){
+		execGenres(db).then(function(data){
+			if (data.length > 0) {
+				res.end(JSON.stringify(data));
+			} else{
+				res.end('No data found');
+			}
+		}).catch((reason)=> {
+			res.end("error: " + reason);
+		});
+	}
 })
 
 var server = app.listen(8081, function () {
-
   console.log("API listening")
-
 })
 
 function connectDB(){
@@ -80,7 +90,6 @@ function connectDB(){
 		console.error(err.message);
 		return false;
 	}
-	console.log('Connected to the database.');
 	});
 	return db;
 }
@@ -89,7 +98,7 @@ function closeDB(db){
 	db.close();
 }
 
-let execQuery = function(db, urlquery){
+let execSongs = function(db, urlquery){
 	return new Promise(
 		function(resolve, reject){
 			var filter = '1=1 ';
@@ -106,6 +115,9 @@ let execQuery = function(db, urlquery){
 			if(urlquery.name){
 				filter += 'AND UPPER(name) like UPPER("%'+urlquery.name+'%") ';
 			}
+			if(urlquery.min && urlquery.max){
+				filter += 'AND duration BETWEEN '+urlquery.min+' AND '+urlquery.max+' ';
+			}
 
 			let sql = 'SELECT artist artist, title, name, duration '+
 			            'FROM songs '+
@@ -118,6 +130,25 @@ let execQuery = function(db, urlquery){
 				if (err) {
 					reject(err);
 				}
+				console.log("Query songs executed!");
+				resolve(row);
+			});
+		});
+}
+
+let execGenres = function(db){
+	return new Promise(
+		function(resolve, reject){
+			let sql = 'SELECT name, COUNT(title) , SUM(duration)'+
+			            'FROM songs '+
+			            'INNER JOIN genres on genres.id = songs.genre '+
+			            'GROUP BY name '+
+			            'ORDER BY name';
+			db.all(sql, [], (err, row) => {
+				if (err) {
+					reject(err);
+				}
+				console.log("Query genres executed!");
 				resolve(row);
 			});
 		});
