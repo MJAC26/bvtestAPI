@@ -30,3 +30,10 @@ To consume the API there is 2 routes:
   This route return a list of the genres, and the number of songs and the total length of all the songs by genre.  
   Example: http://127.0.0.1:8081/genres
   ![alt text](https://github.com/MJAC26/bvtestAPI/blob/master/img/genre.png "Genres example")
+
+### Additional Questions
+Are there any suggestions you could make about the structure of our data? 
+A/ Could make another table for the artist and reference by the id, mainly for cases when need to udpdate the data.
+
+What fields would you index in these tables?
+A/ I would index the title of the song, first create an unique index to be sure only exists one and also because this column probably is searchest most
