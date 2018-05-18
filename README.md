@@ -33,7 +33,7 @@ To consume the API there is 2 routes:
 
 ### Additional Questions
 Are there any suggestions you could make about the structure of our data? 
-A/ Could make another table for the artist and reference by the id, mainly for cases when need to udpdate the data.
+  A/ Could make another table for the artist and reference by the id, mainly for cases when need to udpdate the data.
 
 What fields would you index in these tables?
-A/ I would index the title of the song, first create an unique index to be sure only exists one and also because this column probably is searchest most
+  A/ I would index the title of the song, first create an unique index to be sure only exists one and also because this column probably is searchest most
